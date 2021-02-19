@@ -28,6 +28,7 @@ def find_symmetry_group_number(struct):
 # Ref. Com. Phys. Comm. 184 (2013) 1861-1873
 # and ElaStic source code
 # for more details
+# http://exciting-code.org/elastic
 Ls_Dic = {
     '01': [1., 1., 1., 0., 0., 0.],
     '02': [1., 0., 0., 0., 0., 0.],
