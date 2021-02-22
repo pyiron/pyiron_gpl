@@ -33,7 +33,8 @@ setup(
     install_requires=[
         'pyiron_atomistics==0.2.3',
         'spglib==1.16.1',
-        'scipy==1.6.0'
+        'scipy==1.6.0',
+        'numpy==1.19.5',
     ],
     cmdclass=versioneer.get_cmdclass(),
 
