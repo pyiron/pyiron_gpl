@@ -141,12 +141,15 @@ class PaceMakerJob(GenericJob):
         return res_dict
 
     def collect_output(self):
+        output_potential_filename = self.get_output_potential_filename()
         final_potential_filename = self.get_final_potential_filename()
-        with open(final_potential_filename, "r") as f:
+
+        copyfile(output_potential_filename, final_potential_filename)
+        with open(output_potential_filename, "r") as f:
             yaml_lines = f.readlines()
         final_potential_yaml_string = "".join(yaml_lines)
 
-        bbasis = ACEBBasisSet(final_potential_filename)
+        bbasis = ACEBBasisSet(output_potential_filename)
         cbasis = bbasis.to_ACECTildeBasisSet()
 
         cbasis.save(self.get_final_potential_filename_ace())
@@ -199,11 +202,14 @@ class PaceMakerJob(GenericJob):
         with self.project_hdf5.open("input") as h5in:
             self.input.from_hdf(h5in)
 
-    def get_final_potential_filename(self):
+    def get_output_potential_filename(self):
         return os.path.join(self.working_directory, "output_potential.yaml")
 
+    def get_final_potential_filename(self):
+        return os.path.join(self.working_directory, self.job_name+".yaml")
+
     def get_final_potential_filename_ace(self):
-        return os.path.join(self.working_directory, "output_potential.ace")
+        return os.path.join(self.working_directory, self.job_name+".ace")
 
     def get_current_potential_filename(self):
         return os.path.join(self.working_directory, "interim_potential_1.yaml")
