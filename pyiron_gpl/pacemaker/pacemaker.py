@@ -8,43 +8,112 @@ import os
 import pandas as pd
 import re
 import ruamel.yaml as yaml
-from pyiron_base import GenericJob, GenericParameters
+from pyiron_base import GenericJob, InputList
+from pyiron_base.generic.util import ImportAlarm
 from pyiron_base.settings.generic import Settings
 from shutil import copyfile
-
 
 s = Settings()
 
 try:
     from pyace import BBasisConfiguration, ACEBBasisSet
 
-    HAS_PYACE = True
-except ImportError as e:
-    print("Could not import `pyace` package. The package should be installed for proper functionality")
-    HAS_PYACE = False
+    import_alarm = ImportAlarm()
 
-# set loggers
-loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
-for logger in loggers:
-    logger.setLevel(logging.WARNING)
+    # set loggers level for WARNING to avoid extra print-outs
+    # because pyace do its own logging settings
+    loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
+    for logger in loggers:
+        logger.setLevel(logging.WARNING)
+
+except ImportError as e:
+    import_alarm = ImportAlarm("Could not import `pyace` package. The package should be installed for proper "
+                               "functionality")
+
 
 class PaceMakerJob(GenericJob):
+    """
+    Thin wrapper class of the `pacemaker` - Atomic Cluster Expansion fitting code.
+
+    Current functionality is limited to single-species fit with limited number of basis functions only.
+    Please, contact developers if you would like to use fully functional `pacemaker` code.
+
+    Usage example:
+
+    job = fit_pr.create_job(job_type=PaceMakerJob, job_name="fit_job")
+
+    # setup ACE potential form
+    job.input["potential"]= {
+            # spline mesh settings
+            "deltaSplineBins": 0.001,
+
+            # specie
+            "element": "Cu",
+
+            # embedding function settings
+            "ndensity": 2,
+            "fs_parameters": [1, 1, 1, 0.5],
+            "npot": "FinnisSinclairShiftedScaled",
+
+            # cutoff function
+            "NameOfCutoffFunction": "cos",
+
+            # potential specification
+            ## radial basis functions type and parameters
+            "radbase": "ChebExpCos",
+            "radparameters": [5.25],
+            "rcut": cutoff,
+            "dcut": 0.01,
+
+            ## max correlation order
+            "rankmax": 3,
+            ## specification of max n,l for each of the correlation order
+            "nradmax": [5,2,1],
+            "lmax": [0,2,1], ##NOTE: for order=1 lmax always is 0
+    }
+
+    # setup fitting: loss function, optimization settings
+    job.input["fit"]= {
+        'optimizer': 'BFGS',
+        'maxiter': 150,
+        'loss': {
+            'kappa': 0.5,
+            'L1_coeffs': 5e-7, # L1-regularization
+            'L2_coeffs': 5e-7, # L2-regularization
+            'w1_coeffs': 1,
+            'w2_coeffs': 1,
+            #radial smoothness regularization
+            'w0_rad': 1e-4,
+            'w1_rad': 1e-4,
+            'w2_rad': 1e-4
+        }
+    }
+
+    # setup global cutoff for atomic distances
+    job.input["cutoff"] = cutoff
+
+    # setup training data, could be:
+    # - TrainingContainer
+    # - pandas Dataframe
+    # - filename of .pckl.gzip pandas Dataframe
+    job.structure_data = data_job #
+
+    """
+
     def __init__(self, project, job_name):
         super().__init__(project, job_name)
         self.__name__ = "PaceMakerJob"
         self.__version__ = "0.1"
 
-        self.input = GenericParameters(table_name="input")
+        self.input = InputList(table_name="input")
         self.input['cutoff'] = 10.
         self.input['metadata'] = {}
         self.input['data'] = {}  # data_config
         self.input['potential'] = {}  # potential_config
         self.input['fit'] = {}  # fit_config
-        self.input['backend'] = {'evaluator': 'tensorpot'}  # backend_config
+        self.input['backend'] = {'evaluator': 'pyace'}  # backend_config
 
         self.structure_data = None
-
-        # self.executable = "pacemaker input.yaml -l log.txt"
         self._executable = None
         self._executable_activate()
 
@@ -57,8 +126,8 @@ class PaceMakerJob(GenericJob):
             df["pbc"] = df["ase_atoms"].map(lambda atoms: np.all(atoms.pbc))
 
         data_file_name = os.path.join(self.working_directory, "df_fit.pckl.gzip")
-        logging.info("Saving training structures dataframe into {} with pickle protocol = 4, compression = gzip".format(
-            data_file_name))
+        logging.info(
+            f"Saving training structures dataframe into {data_file_name} with pickle protocol = 4, compression = gzip")
         df.to_pickle(data_file_name, compression="gzip", protocol=4)
         return data_file_name
 
@@ -76,7 +145,7 @@ class PaceMakerJob(GenericJob):
                 logging.info("structure_data is valid file path")
                 self.input["data"] = {"filename": self.structure_data}
             else:
-                raise ValueError("Provided structure_data filename ({}) doesn't exists".format(self.structure_data))
+                raise ValueError(f"Provided structure_data filename ({self.structure_data}) doesn't exists")
         elif hasattr(self.structure_data, "get_pandas"):  # duck-typing check for TrainingContainer
             logging.info("structure_data is TrainingContainer")
             df = self.structure_data.to_pandas()
@@ -102,9 +171,8 @@ class PaceMakerJob(GenericJob):
                 pot_basename = os.path.basename(pot_file_name)
                 copyfile(pot_file_name, os.path.join(self.working_directory, pot_basename))
                 input_yaml_dict['potential'] = pot_basename
-                # TODO: check if initial potential is provided (for continuation of fit)
             else:
-                raise ValueError("Provided potential filename ({}) doesn't exists".format(self.input["potential"]))
+                raise ValueError(f"Provided potential filename ({self.input['potential']}) doesn't exists")
 
         with open(os.path.join(self.working_directory, "input.yaml"), "w") as f:
             yaml.dump(input_yaml_dict, f)
@@ -140,6 +208,7 @@ class PaceMakerJob(GenericJob):
         res_dict["rmse_forces_low"] = ef_rmses[:, 3]
         return res_dict
 
+    @import_alarm
     def collect_output(self):
         output_potential_filename = self.get_output_potential_filename()
         final_potential_filename = self.get_final_potential_filename()
@@ -149,10 +218,11 @@ class PaceMakerJob(GenericJob):
             yaml_lines = f.readlines()
         final_potential_yaml_string = "".join(yaml_lines)
 
+        # convert resulting potential to CTilde form and save
         bbasis = ACEBBasisSet(output_potential_filename)
         cbasis = bbasis.to_ACECTildeBasisSet()
-
         cbasis.save(self.get_final_potential_filename_ace())
+
         with open(self.get_final_potential_filename_ace(), "r") as f:
             ace_lines = f.readlines()
         final_potential_ace_string = "".join(ace_lines)
@@ -175,30 +245,23 @@ class PaceMakerJob(GenericJob):
         elem = " ".join(elements_name)
         pot_file_name = self.get_final_potential_filename_ace()
         pot_dict = {
-            'Config': [["pair_style pace\n", "pair_coeff  * * {} {}\n".format(pot_file_name, elem)]],
+            'Config': [["pair_style pace\n", f"pair_coeff  * * {pot_file_name} {elem}\n"]],
             'Filename': [""],
             'Model': ["ACE"],
             'Name': [self.job_name],
             'Species': [elements_name]
         }
-
         ace_potential = pd.DataFrame(pot_dict)
 
         return ace_potential
 
     def to_hdf(self, hdf=None, group_name=None):
-        super().to_hdf(
-            hdf=hdf,
-            group_name=group_name
-        )
+        super().to_hdf(hdf=hdf, group_name=group_name)
         with self.project_hdf5.open("input") as h5in:
             self.input.to_hdf(h5in)
 
     def from_hdf(self, hdf=None, group_name=None):
-        super().from_hdf(
-            hdf=hdf,
-            group_name=group_name
-        )
+        super().from_hdf(hdf=hdf, group_name=group_name)
         with self.project_hdf5.open("input") as h5in:
             self.input.from_hdf(h5in)
 
@@ -206,26 +269,22 @@ class PaceMakerJob(GenericJob):
         return os.path.join(self.working_directory, "output_potential.yaml")
 
     def get_final_potential_filename(self):
-        return os.path.join(self.working_directory, self.job_name+".yaml")
+        return os.path.join(self.working_directory, self.job_name + ".yaml")
 
     def get_final_potential_filename_ace(self):
-        return os.path.join(self.working_directory, self.job_name+".ace")
+        return os.path.join(self.working_directory, self.job_name + ".ace")
 
     def get_current_potential_filename(self):
         return os.path.join(self.working_directory, "interim_potential_1.yaml")
 
+    @import_alarm
     def get_current_potential(self):
-        if HAS_PYACE:
-            current_potential_filename = self.get_current_potential_filename()
-            bbasis = BBasisConfiguration(current_potential_filename)
-            return bbasis
-        else:
-            raise RuntimeError("`pyace` package is not installed")
+        current_potential_filename = self.get_current_potential_filename()
+        bbasis = BBasisConfiguration(current_potential_filename)
+        return bbasis
 
+    @import_alarm
     def get_final_potential(self):
-        if HAS_PYACE:
-            final_potential_filename = self.get_final_potential_filename()
-            bbasis = BBasisConfiguration(final_potential_filename)
-            return bbasis
-        else:
-            raise RuntimeError("`pyace` pacakge is not installed")
+        final_potential_filename = self.get_final_potential_filename()
+        bbasis = BBasisConfiguration(final_potential_filename)
+        return bbasis

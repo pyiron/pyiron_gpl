@@ -34,7 +34,7 @@ setup(
         'pyiron_atomistics==0.2.3',
         'spglib==1.16.1',
         'scipy==1.6.0',
-        'numpy==1.19.5',
+        'numpy',
     ],
     cmdclass=versioneer.get_cmdclass(),
 
