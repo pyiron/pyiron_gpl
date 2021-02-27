@@ -8,9 +8,7 @@ import os
 import pandas as pd
 import re
 import ruamel.yaml as yaml
-from pyiron_base import GenericJob, InputList
-from pyiron_base.generic.util import ImportAlarm
-from pyiron_base.settings.generic import Settings
+from pyiron_base import GenericJob, InputList, ImportAlarm, Settings
 from shutil import copyfile
 
 s = Settings()
