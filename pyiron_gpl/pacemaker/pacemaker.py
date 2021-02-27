@@ -8,8 +8,12 @@ import os
 import pandas as pd
 import re
 import ruamel.yaml as yaml
-from pyiron_base import GenericJob, InputList, ImportAlarm, Settings
+
 from shutil import copyfile
+
+from pyiron_base import GenericJob, InputList, ImportAlarm, Settings
+from pyiron_contrib.atomistic.atomistics.job.trainingcontainer import TrainingContainer
+
 
 s = Settings()
 
@@ -144,7 +148,7 @@ class PaceMakerJob(GenericJob):
                 self.input["data"] = {"filename": self.structure_data}
             else:
                 raise ValueError(f"Provided structure_data filename ({self.structure_data}) doesn't exists")
-        elif hasattr(self.structure_data, "get_pandas"):  # duck-typing check for TrainingContainer
+        elif isinstance(self.structure_data, TrainingContainer):
             logging.info("structure_data is TrainingContainer")
             df = self.structure_data.to_pandas()
             data_file_name = self._save_structure_dataframe_pckl_gzip(df)
