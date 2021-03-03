@@ -31,7 +31,7 @@ setup(
     keywords='pyiron',
     packages=find_packages(exclude=["*tests*", "*docs*", "*binder*", "*conda*", "*notebooks*", "*.ci_support*"]),
     install_requires=[
-        'pyiron_atomistics==0.2.4',
+        'pyiron_atomistics==0.2.5',
         'spglib==1.16.1',
         'scipy==1.6.0',
         'numpy',
