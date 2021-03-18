@@ -12,8 +12,8 @@ from molmod.units import *
 from pyiron_atomistics.atomistics.structure.atoms import Atoms
 from pyiron_base import ProjectHDFio, Project
 
-from pyiron_atomistics.yaff.yaff import YaffInput
-from pyiron_atomistics.yaff.yaff import Yaff
+from pyiron_gpl.yaff.yaff import YaffInput
+from pyiron_gpl.yaff.yaff import Yaff
 
 
 class TestYaff(unittest.TestCase):

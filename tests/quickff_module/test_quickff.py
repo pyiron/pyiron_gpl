@@ -12,8 +12,8 @@ from molmod.units import *
 from pyiron_atomistics.atomistics.structure.atoms import Atoms
 from pyiron_base import ProjectHDFio, Project
 
-from pyiron_atomistics.quickff.quickff import QuickFFInput
-from pyiron_atomistics.quickff.quickff import QuickFF
+from pyiron_gpl.quickff.quickff import QuickFFInput
+from pyiron_gpl.quickff.quickff import QuickFF
 
 
 class TestQuickFF(unittest.TestCase):
