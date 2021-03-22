@@ -11,7 +11,7 @@ import ruamel.yaml as yaml
 
 from shutil import copyfile
 
-from pyiron_base import GenericJob, InputList, ImportAlarm, Settings
+from pyiron_base import GenericJob, DataContainer, ImportAlarm, Settings
 from pyiron_contrib.atomistic.atomistics.job.trainingcontainer import TrainingContainer
 
 
@@ -107,7 +107,7 @@ class PaceMakerJob(GenericJob):
         self.__name__ = "PaceMakerJob"
         self.__version__ = "0.1"
 
-        self.input = InputList(table_name="input")
+        self.input = DataContainer(table_name="input")
         self.input['cutoff'] = 10.
         self.input['metadata'] = {}
         self.input['data'] = {}  # data_config
