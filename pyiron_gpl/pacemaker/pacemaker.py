@@ -11,11 +11,9 @@ import ruamel.yaml as yaml
 
 from shutil import copyfile
 
-from pyiron_base import GenericJob, DataContainer, ImportAlarm, Settings
-from pyiron_contrib.atomistic.atomistics.job.trainingcontainer import TrainingContainer
+from pyiron_base import GenericJob, DataContainer, ImportAlarm
+from pyiron_contrib.atomistics.atomistics.job.trainingcontainer import TrainingContainer
 
-
-s = Settings()
 
 try:
     from pyace import BBasisConfiguration, ACEBBasisSet
