@@ -34,7 +34,7 @@ setup(
         'molmod==1.4.8',
         'numpy==1.21.4',
         'pyiron_atomistics==0.2.31',
-        'spglib==1.16.2',
+        'spglib==1.16.3',
         'scipy==1.7.3',
         'quickff==2.2.4',
         'tamkin==1.2.6',
