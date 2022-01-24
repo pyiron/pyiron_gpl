@@ -32,7 +32,7 @@ setup(
     packages=find_packages(exclude=["*tests*", "*docs*", "*binder*", "*conda*", "*notebooks*", "*.ci_support*"]),
     install_requires=[
         'molmod==1.4.8',
-        'numpy==1.22.0',
+        'numpy==1.22.1',
         'pyiron_atomistics==0.2.35',
         'spglib==1.16.3',
         'scipy==1.7.3',
