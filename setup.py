@@ -33,7 +33,7 @@ setup(
     install_requires=[
         'molmod==1.4.8',
         'numpy==1.22.2',
-        'pyiron_atomistics==0.2.37',
+        'pyiron_atomistics==0.2.38',
         'spglib==1.16.3',
         'scipy==1.8.0',
         'quickff==2.2.4',
