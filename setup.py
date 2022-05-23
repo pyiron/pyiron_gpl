@@ -35,7 +35,7 @@ setup(
         'numpy==1.22.3',
         'pyiron_atomistics==0.2.45',
         'spglib==1.16.5',
-        'scipy==1.8.0',
+        'scipy==1.8.1',
         'quickff==2.2.4',
         'tamkin==1.2.6',
         'yaff==1.4.2'
