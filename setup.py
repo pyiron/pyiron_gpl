@@ -38,7 +38,7 @@ setup(
         'scipy==1.9.3',
         'quickff==2.2.4',
         'tamkin==1.2.6',
-        'yaff==1.4.2'
+        'yaff==1.6.0'
     ],
     cmdclass=versioneer.get_cmdclass(),
 
