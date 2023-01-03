@@ -11,4 +11,4 @@ dependencies:
 - spglib =2.0.2
 - quickff =2.2.4
 - tamkin =1.2.6
-- yaff =1.4.2
+- yaff =1.6.0
