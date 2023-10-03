@@ -12,3 +12,4 @@ dependencies:
 - quickff =2.2.4
 - tamkin =1.2.6
 - yaff =1.6.0
+- emmet-core =0.69.2
