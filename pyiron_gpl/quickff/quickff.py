@@ -2,6 +2,7 @@ from pyiron_base import GenericParameters
 from pyiron_atomistics.atomistics.structure.atoms import Atoms
 from pyiron_atomistics.atomistics.job.atomistic import AtomisticGenericJob
 from yaff import System, log as Yafflog, ForceField
+
 Yafflog.set_level(Yafflog.silent)
 from quickff import read_abinitio
 from quickff.tools import set_ffatypes
@@ -15,84 +16,97 @@ import posixpath
 import numpy as np
 
 
-def write_chk(input_dict, working_directory='.'):
+def write_chk(input_dict, working_directory="."):
     # collect data and initialize Yaff system
-    if 'cell' in input_dict.keys() and input_dict['cell'] is not None and np.all(np.array(input_dict['cell']) != np.zeros([3,3])):
+    if (
+        "cell" in input_dict.keys()
+        and input_dict["cell"] is not None
+        and np.all(np.array(input_dict["cell"]) != np.zeros([3, 3]))
+    ):
         system = System(
-          input_dict['numbers'], 
-          input_dict['pos']*angstrom, 
-          rvecs=np.array(input_dict['cell'])*angstrom, 
-          ffatypes=input_dict['ffatypes_man'], 
-          ffatype_ids=input_dict['ffatype_ids_man']
+            input_dict["numbers"],
+            input_dict["pos"] * angstrom,
+            rvecs=np.array(input_dict["cell"]) * angstrom,
+            ffatypes=input_dict["ffatypes_man"],
+            ffatype_ids=input_dict["ffatype_ids_man"],
         )
     else:
         system = System(
-            input_dict['numbers'],
-            input_dict['pos']*angstrom,
-            ffatypes=input_dict['ffatypes_man'],
-            ffatype_ids=input_dict['ffatype_ids_man']
+            input_dict["numbers"],
+            input_dict["pos"] * angstrom,
+            ffatypes=input_dict["ffatypes_man"],
+            ffatype_ids=input_dict["ffatype_ids_man"],
         )
     # determine masses, bonds and ffaypes from ffatype_rules
     system.detect_bonds()
     system.set_standard_masses()
     # write dictionnairy to MolMod CHK file
-    system.to_file(posixpath.join(working_directory, 'input.chk'))
+    system.to_file(posixpath.join(working_directory, "input.chk"))
     # Reload input.chk as dictionairy and add AI input data
-    d = load_chk(posixpath.join(working_directory, 'input.chk'))
+    d = load_chk(posixpath.join(working_directory, "input.chk"))
 
-    assert isinstance(input_dict['aiener'], float), "AI energy not defined in input, use job.read_abintio(...)"
-    assert isinstance(input_dict['aigrad'], np.ndarray), "AI gradient not defined in input, use job.read_abintio(...)"
-    assert isinstance(input_dict['aihess'], np.ndarray), "AI hessian not defined in input, use job.read_abintio(...)"
-    d['energy'] = input_dict['aiener']
-    d['grad'] = input_dict['aigrad']
-    d['hess'] = input_dict['aihess']
-    dump_chk(posixpath.join(working_directory,'input.chk'), d)
+    assert isinstance(
+        input_dict["aiener"], float
+    ), "AI energy not defined in input, use job.read_abintio(...)"
+    assert isinstance(
+        input_dict["aigrad"], np.ndarray
+    ), "AI gradient not defined in input, use job.read_abintio(...)"
+    assert isinstance(
+        input_dict["aihess"], np.ndarray
+    ), "AI hessian not defined in input, use job.read_abintio(...)"
+    d["energy"] = input_dict["aiener"]
+    d["grad"] = input_dict["aigrad"]
+    d["hess"] = input_dict["aihess"]
+    dump_chk(posixpath.join(working_directory, "input.chk"), d)
 
 
-def write_pars(pars, fn, working_directory='.'):
-    with open(posixpath.join(working_directory, fn), 'w') as f:
+def write_pars(pars, fn, working_directory="."):
+    with open(posixpath.join(working_directory, fn), "w") as f:
         for line in pars:
             f.write(line)
 
 
-def write_config(input_dict, working_directory='.'):
-    with open(posixpath.join(working_directory, 'config.txt'), 'w') as f:
+def write_config(input_dict, working_directory="."):
+    with open(posixpath.join(working_directory, "config.txt"), "w") as f:
         for key in key_checks.keys():
             if key in input_dict.keys():
                 value_int = str(input_dict[key])
-                if key == 'ffatypes': assert value_int == 'None'
-                print('%s:   %s' %(key+' '*(30-len(key)), value_int), file=f)
+                if key == "ffatypes":
+                    assert value_int == "None"
+                print("%s:   %s" % (key + " " * (30 - len(key)), value_int), file=f)
 
 
 def collect_output(fn_pars, fn_sys):
     # this routine reads the output parameter file containing the covalent pars
     output_dict = {
-        'generic/bond': [],
-        'generic/bend': [],
-        'generic/torsion': [],
-        'generic/oopdist': [],
-        'generic/cross': []
+        "generic/bond": [],
+        "generic/bend": [],
+        "generic/torsion": [],
+        "generic/oopdist": [],
+        "generic/cross": [],
     }
-    kinds = ['bond', 'bend', 'torsion', 'oopdist', 'cross']
-    with open(fn_pars, 'r') as f:
+    kinds = ["bond", "bend", "torsion", "oopdist", "cross"]
+    with open(fn_pars, "r") as f:
         for line in f.readlines():
             for key in kinds:
                 if key in line.lower():
-                    output_dict['generic/%s' %key].append(line)
+                    output_dict["generic/%s" % key].append(line)
     system = System.from_file(fn_sys)
-    output_dict['system/numbers'] = system.numbers
-    output_dict['system/pos'] = system.pos/angstrom
+    output_dict["system/numbers"] = system.numbers
+    output_dict["system/pos"] = system.pos / angstrom
     if system.cell is not None:
-        output_dict['system/rvecs'] = system.cell.rvecs/angstrom
-    output_dict['system/bonds'] = system.bonds
-    output_dict['system/ffatypes'] = np.asarray(system.ffatypes,'S22')
-    output_dict['system/ffatype_ids'] = system.ffatype_ids
+        output_dict["system/rvecs"] = system.cell.rvecs / angstrom
+    output_dict["system/bonds"] = system.bonds
+    output_dict["system/ffatypes"] = np.asarray(system.ffatypes, "S22")
+    output_dict["system/ffatype_ids"] = system.ffatype_ids
     return output_dict
 
 
 class QuickFFInput(GenericParameters):
     def __init__(self, input_file_name=None):
-        super(QuickFFInput, self).__init__(input_file_name=input_file_name,table_name="input_inp",comment_char="#")
+        super(QuickFFInput, self).__init__(
+            input_file_name=input_file_name, table_name="input_inp", comment_char="#"
+        )
 
     def load_default(self):
         """
@@ -179,18 +193,33 @@ class QuickFF(AtomisticGenericJob):
         http://molmod.github.io/yaff/ug_atselect.html) or by specifying
         the ffatype_level employing the built-in routine in QuickFF.
         """
-        numbers = np.array([pt[symbol].number for symbol in self.structure.get_chemical_symbols()])
-        if self.structure.cell is not None and np.all(np.array(self.structure.cell) != np.zeros([3,3])):
-            system = System(numbers, self.structure.positions.copy()*angstrom, rvecs=np.array(self.structure.cell)*angstrom)
+        numbers = np.array(
+            [pt[symbol].number for symbol in self.structure.get_chemical_symbols()]
+        )
+        if self.structure.cell is not None and np.all(
+            np.array(self.structure.cell) != np.zeros([3, 3])
+        ):
+            system = System(
+                numbers,
+                self.structure.positions.copy() * angstrom,
+                rvecs=np.array(self.structure.cell) * angstrom,
+            )
         else:
-            system = System(numbers, self.structure.positions.copy()*angstrom)
+            system = System(numbers, self.structure.positions.copy() * angstrom)
         system.detect_bonds()
 
-        if not sum([ffatypes is None, ffatype_rules is None, ffatype_level is None]) == 2:
-            raise IOError('Exactly one of ffatypes, ffatype_rules and ffatype_level should be defined')
+        if (
+            not sum([ffatypes is None, ffatype_rules is None, ffatype_level is None])
+            == 2
+        ):
+            raise IOError(
+                "Exactly one of ffatypes, ffatype_rules and ffatype_level should be defined"
+            )
 
         if ffatypes is not None:
-            assert ffatype_rules is None, 'ffatypes and ffatype_rules cannot be defined both'
+            assert (
+                ffatype_rules is None
+            ), "ffatypes and ffatype_rules cannot be defined both"
             system.ffatypes = ffatypes
             system.ffatype_ids = None
             system._init_derived_ffatypes()
@@ -203,30 +232,32 @@ class QuickFF(AtomisticGenericJob):
         self.ffatype_ids = system.ffatype_ids.copy()
 
     def set_ei(self, fn):
-        self.input['ei'] = fn.split('/')[-1]
+        self.input["ei"] = fn.split("/")[-1]
         self.fn_ei = fn
 
     def set_vdw(self, fn):
-        self.input['vdw'] = fn.split('/')[-1]
+        self.input["vdw"] = fn.split("/")[-1]
         self.fn_vdw = fn
 
     def write_input(self):
         # load system related input
         input_dict = {
-            'symbols': self.structure.get_chemical_symbols(),
-            'numbers': np.array([pt[symbol].number for symbol in self.structure.get_chemical_symbols()]),
-            'ffatypes_man': self.ffatypes,
-            'ffatype_ids_man': self.ffatype_ids,
-            'pos': self.structure.positions,
-            'aiener': self.aiener,
-            'aigrad': self.aigrad,
-            'aihess': self.aihess,
+            "symbols": self.structure.get_chemical_symbols(),
+            "numbers": np.array(
+                [pt[symbol].number for symbol in self.structure.get_chemical_symbols()]
+            ),
+            "ffatypes_man": self.ffatypes,
+            "ffatype_ids_man": self.ffatype_ids,
+            "pos": self.structure.positions,
+            "aiener": self.aiener,
+            "aigrad": self.aigrad,
+            "aihess": self.aihess,
         }
         for k in self.input._dataset["Parameter"]:
             input_dict[k] = self.input[k]
-        input_dict['cell'] = None
+        input_dict["cell"] = None
         if self.structure.cell is not None:
-            input_dict['cell'] = self.structure.get_cell()
+            input_dict["cell"] = self.structure.get_cell()
         # load all input settings from self.input
         for k, v in self.input._dataset.items():
             input_dict[k] = v
@@ -234,17 +265,21 @@ class QuickFF(AtomisticGenericJob):
         write_chk(input_dict, working_directory=self.working_directory)
         # write nonbonded pars and config input files
         if self.fn_ei is not None:
-            assert self.input['ei'] is not None
-            os.system('cp %s %s/%s' %(self.fn_ei , self.working_directory, self.input['ei']))
+            assert self.input["ei"] is not None
+            os.system(
+                "cp %s %s/%s" % (self.fn_ei, self.working_directory, self.input["ei"])
+            )
         if self.fn_vdw is not None:
-            assert self.input['vdw'] is not None
-            os.system('cp %s %s/%s' %(self.fn_vdw, self.working_directory, self.input['vdw']))
-        write_config(input_dict,working_directory=self.working_directory)
+            assert self.input["vdw"] is not None
+            os.system(
+                "cp %s %s/%s" % (self.fn_vdw, self.working_directory, self.input["vdw"])
+            )
+        write_config(input_dict, working_directory=self.working_directory)
 
     def collect_output(self):
         output_dict = collect_output(
-            posixpath.join(self.working_directory, self.input['fn_yaff']),
-            posixpath.join(self.working_directory, self.input['fn_sys'])
+            posixpath.join(self.working_directory, self.input["fn_yaff"]),
+            posixpath.join(self.working_directory, self.input["fn_sys"]),
         )
         with self.project_hdf5.open("output") as hdf5_output:
             for k, v in output_dict.items():
@@ -270,20 +305,30 @@ class QuickFF(AtomisticGenericJob):
         raise NotImplementedError
 
     def log(self):
-        with open(posixpath.join(self.working_directory, 'quickff.log')) as f:
+        with open(posixpath.join(self.working_directory, "quickff.log")) as f:
             print(f.read())
 
     def get_yaff_system(self):
-        system = System.from_file(posixpath.join(self.working_directory, self.input['fn_sys']))
+        system = System.from_file(
+            posixpath.join(self.working_directory, self.input["fn_sys"])
+        )
         return system
 
-    def get_yaff_ff(self, rcut=15*angstrom, alpha_scale=3.2, gcut_scale=1.5, smooth_ei=True):
+    def get_yaff_ff(
+        self, rcut=15 * angstrom, alpha_scale=3.2, gcut_scale=1.5, smooth_ei=True
+    ):
         system = self.get_yaff_system()
-        fn_pars = posixpath.join(self.working_directory, self.input['fn_yaff'])
+        fn_pars = posixpath.join(self.working_directory, self.input["fn_yaff"])
         if not os.path.isfile(fn_pars):
-            raise IOError('No pars.txt file find in job working directory. Have you already run the job?')
+            raise IOError(
+                "No pars.txt file find in job working directory. Have you already run the job?"
+            )
         ff = ForceField.generate(
-            system, fn_pars, rcut=rcut, alpha_scale=alpha_scale,
-            gcut_scale=gcut_scale, smooth_ei=smooth_ei
+            system,
+            fn_pars,
+            rcut=rcut,
+            alpha_scale=alpha_scale,
+            gcut_scale=gcut_scale,
+            smooth_ei=smooth_ei,
         )
         return ff

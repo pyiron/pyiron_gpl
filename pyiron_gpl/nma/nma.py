@@ -20,33 +20,39 @@ class NMA(tamkin.NMA):
     which calculates the gradient and the hessian using TAMkin based on a job object.
     With the NMA object you can animate a certain mode and plot the IR spectrum.
     """
+
     def __init__(self, job, atomic_units=False):
         self.job = job
-        if not job['output/generic/hessian'] is None and not job['output/generic/forces'] is None:
+        if (
+            not job["output/generic/hessian"] is None
+            and not job["output/generic/forces"] is None
+        ):
             structure = job.get_structure(-1)
             if atomic_units:
                 tammol = tamkin.Molecule(
                     structure.get_atomic_numbers(),
                     structure.get_positions(),
-                    np.array(structure.get_masses())*amu,
-                    job['output/generic/energy_tot'],
-                    job['output/generic/forces']*-1,
-                    job['output/generic/hessian']
+                    np.array(structure.get_masses()) * amu,
+                    job["output/generic/energy_tot"],
+                    job["output/generic/forces"] * -1,
+                    job["output/generic/hessian"],
                 )
             else:
                 tammol = tamkin.Molecule(
                     structure.get_atomic_numbers(),
-                    structure.get_positions()*angstrom,
-                    np.array(structure.get_masses())*amu,
-                    job['output/generic/energy_tot']*electronvolt,
-                    job['output/generic/forces']*-1*electronvolt/angstrom,
-                    job['output/generic/hessian']*electronvolt/angstrom**2
+                    structure.get_positions() * angstrom,
+                    np.array(structure.get_masses()) * amu,
+                    job["output/generic/energy_tot"] * electronvolt,
+                    job["output/generic/forces"] * -1 * electronvolt / angstrom,
+                    job["output/generic/hessian"] * electronvolt / angstrom**2,
                 )
         else:
-            raise ValueError('An NMA calculation requires a gradient and hessian.')
+            raise ValueError("An NMA calculation requires a gradient and hessian.")
         super(NMA, self).__init__(tammol)
 
-    def animate_nma_mode(self, index, amplitude=1.0, frames=24, spacefill=False, particle_size=0.5):
+    def animate_nma_mode(
+        self, index, amplitude=1.0, frames=24, spacefill=False, particle_size=0.5
+    ):
         """
         Visualize the normal mode corresponding to an index
 
@@ -63,7 +69,11 @@ class NMA(tamkin.NMA):
         particle size
                     size of the atoms in the structure
         """
-        print("This mode corresponds to a frequency of {} 1/cm".format(self.freqs[index]/lightspeed/(1./centimeter)))
+        print(
+            "This mode corresponds to a frequency of {} 1/cm".format(
+                self.freqs[index] / lightspeed / (1.0 / centimeter)
+            )
+        )
         coordinates = self.coordinates
         symbols = [periodic[n].symbol for n in self.numbers]
 
@@ -75,23 +85,31 @@ class NMA(tamkin.NMA):
         positions = np.zeros((frames, len(symbols), 3))
 
         for frame in range(frames):
-            factor = amplitude*np.sin(2*np.pi*float(frame)/frames)
-            positions[frame] = (coordinates + factor*mode.reshape((-1, 3)))/angstrom
+            factor = amplitude * np.sin(2 * np.pi * float(frame) / frames)
+            positions[frame] = (coordinates + factor * mode.reshape((-1, 3))) / angstrom
 
         try:
             import nglview
         except ImportError:
-            raise ImportError("The animate_nma_mode() function requires the package nglview to be installed")
+            raise ImportError(
+                "The animate_nma_mode() function requires the package nglview to be installed"
+            )
 
         animation = nglview.show_asetraj(Trajectory(positions, self.job.structure))
         if spacefill:
-            animation.add_spacefill(radius_type='vdw', scale=0.5, radius=particle_size)
+            animation.add_spacefill(radius_type="vdw", scale=0.5, radius=particle_size)
             animation.remove_ball_and_stick()
         else:
             animation.add_ball_and_stick()
         return animation
 
-    def plot_IR_spectrum(self, width=10*lightspeed/centimeter, scale=1.0, intensities=None, charges=None):
+    def plot_IR_spectrum(
+        self,
+        width=10 * lightspeed / centimeter,
+        scale=1.0,
+        intensities=None,
+        charges=None,
+    ):
         """
         Plot IR spectrum based on Lorentzian width, freqs can be scaled through scale
         Intensities can be provided (e.g. from a Gaussian job) or calculated from the charges
@@ -108,35 +126,42 @@ class NMA(tamkin.NMA):
         charges     charges to calculate IR intensities, from e.g. Yaff simulation
         """
         if not intensities is None:
-            assert len(intensities) == (len(self.freqs)-len(self.zeros))
+            assert len(intensities) == (len(self.freqs) - len(self.zeros))
         if intensities is None and charges is None:
-            raise ValueError('This function requires the charges or the intensities to calculate the line shape')
+            raise ValueError(
+                "This function requires the charges or the intensities to calculate the line shape"
+            )
         elif not intensities is None and not charges is None:
-            raise ValueError('Please only provide either the intensities or the charges')
+            raise ValueError(
+                "Please only provide either the intensities or the charges"
+            )
         else:
-            xr = np.arange(0,5001,1)*lightspeed/centimeter
+            xr = np.arange(0, 5001, 1) * lightspeed / centimeter
             alphas = np.zeros(len(xr))
 
             # Calculate intensities
             amps = self.modes
             freqs = self.freqs * scale
-            for n, (wn, ampn) in enumerate(zip(np.delete(freqs, self.zeros), np.delete(amps, self.zeros, axis=0))):
+            for n, (wn, ampn) in enumerate(
+                zip(np.delete(freqs, self.zeros), np.delete(amps, self.zeros, axis=0))
+            ):
                 if not charges is None:
                     intensity = 0.0
                     for k in range(3):
                         for i, qi in enumerate(charges):
-                            idx = 3*i+k
-                            intensity += (qi*ampn[idx])**2
+                            idx = 3 * i + k
+                            intensity += (qi * ampn[idx]) ** 2
                 else:
                     intensity = intensities[n]
-                alphas += intensity*self._lorentz(xr, wn, width)
+                alphas += intensity * self._lorentz(xr, wn, width)
                 print(
-                    'Mode %i:    freq = %.3f 1/cm    IR ampl. = %.3e a.u.' %(n, wn/(lightspeed/centimeter), intensity)
+                    "Mode %i:    freq = %.3f 1/cm    IR ampl. = %.3e a.u."
+                    % (n, wn / (lightspeed / centimeter), intensity)
                 )
             pt.clf()
-            pt.plot(xr/(lightspeed/centimeter), alphas)
-            pt.xlabel('Frequency [1/cm]')
-            pt.ylabel('Absorption [a.u.]')
+            pt.plot(xr / (lightspeed / centimeter), alphas)
+            pt.xlabel("Frequency [1/cm]")
+            pt.ylabel("Absorption [a.u.]")
             pt.show()
 
     @staticmethod
@@ -144,4 +169,4 @@ class NMA(tamkin.NMA):
         """
         Lorentzian line shape function, p is position of max, w is FWHM and x is current frequency
         """
-        return 1./(1.+((p-x)/(w/2.))**2)
+        return 1.0 / (1.0 + ((p - x) / (w / 2.0)) ** 2)
