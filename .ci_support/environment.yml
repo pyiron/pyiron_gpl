@@ -5,7 +5,7 @@ dependencies:
 - coverage
 - codacy-coverage
 - molmod =1.4.8
-- numpy =1.26.0
+- numpy =1.26.1
 - pyiron_atomistics =0.3.4
 - scipy =1.11.3
 - spglib =2.1.0
