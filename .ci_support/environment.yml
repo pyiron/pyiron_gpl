@@ -7,7 +7,7 @@ dependencies:
 - molmod =1.4.8
 - numpy =1.26.0
 - pyiron_atomistics =0.3.6
-- scipy =1.11.3
+- scipy =1.11.4
 - spglib =2.1.0
 - quickff =2.2.4
 - tamkin =1.2.6
