@@ -5,11 +5,11 @@ dependencies:
 - coverage
 - codacy-coverage
 - molmod =1.4.8
-- numpy =1.26.3
-- pyiron_atomistics =0.4.12
+- numpy =1.26.4
+- pyiron_atomistics =0.4.14
 - maggma =0.60.2
 - scipy =1.12.0
-- spglib =2.3.0
+- spglib =2.3.1
 - quickff =2.2.4
 - tamkin =1.2.6
 - yaff =1.6.0
