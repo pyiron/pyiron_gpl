@@ -11,6 +11,7 @@ from atomistics.workflows.elastic.helper import (
     generate_structures_helper,
     analyse_structures_helper,
 )
+from atomistics.workflows.elastic.elastic_moduli import ElasticProperties
 from pyiron_atomistics.atomistics.master.parallel import AtomisticParallelMaster
 from pyiron_base import JobGenerator
 
@@ -69,7 +70,12 @@ class ElasticMatrixCalculator(object):
         Returns:
 
         """
-        result_dict = analyse_structures_helper(
+        (
+            elastic_matrix,
+            self._data["A2"],
+            self._data["strain_energy"],
+            self._data["e0"],
+        ) = analyse_structures_helper(
             output_dict=output_dict,
             Lag_strain_list=self._data["Lag_strain_list"],
             epss=self._data["epss"],
@@ -78,37 +84,27 @@ class ElasticMatrixCalculator(object):
             fit_order=self.fit_order,
             zero_strain_job_name=self.zero_strain_job_name,
         )
-        ene0 = None
-        if 0.0 in epss:
-            ene0 = output_dict[self.zero_strain_job_name]
-        self._data["e0"] = ene0
-        strain_energy = []
-        for lag_strain in Lag_strain_list:
-            strain_energy.append([])
-            for eps in epss:
-                if not eps == 0.0:
-                    jobname = self.subjob_name(lag_strain, eps)
-                    ene = output_dict[jobname]
-                else:
-                    ene = ene0
-                strain_energy[-1].append((eps, ene))
-        self._data["strain_energy"] = strain_energy
-        self._data["C"] = result_dict["elastic_matrix"]
-        self._data["S"] = result_dict["elastic_matrix_inverse"]
-        self._data["BV"] = result_dict["bulkmodul_voigt"]
-        self._data["BR"] = result_dict["bulkmodul_reuss"]
-        self._data["BH"] = result_dict["bulkmodul_hill"]
-        self._data["GV"] = result_dict["shearmodul_voigt"]
-        self._data["GR"] = result_dict["shearmodul_reuss"]
-        self._data["GH"] = result_dict["shearmodul_hill"]
-        self._data["EV"] = result_dict["youngsmodul_voigt"]
-        self._data["ER"] = result_dict["youngsmodul_reuss"]
-        self._data["EH"] = result_dict["youngsmodul_hill"]
-        self._data["nuV"] = result_dict["poissonsratio_voigt"]
-        self._data["nuR"] = result_dict["poissonsratio_reuss"]
-        self._data["nuH"] = result_dict["poissonsratio_hill"]
-        self._data["AVR"] = result_dict["AVR"]
-        self._data["C_eigval"] = result_dict["elastic_matrix_eigval"]
+        elastic = ElasticProperties(elastic_matrix=elastic_matrix)
+        self._data.update(
+            {
+                "C": elastic.elastic_matrix(),
+                "S": elastic.elastic_matrix_inverse(),
+                "BV": elastic.bulkmodul_voigt(),
+                "BR": elastic.bulkmodul_reuss(),
+                "BH": elastic.bulkmodul_hill(),
+                "GV": elastic.shearmodul_voigt(),
+                "GR": elastic.shearmodul_reuss(),
+                "GH": elastic.shearmodul_hill(),
+                "EV": elastic.youngsmodul_voigt(),
+                "ER": elastic.youngsmodul_reuss(),
+                "EH": elastic.youngsmodul_hill(),
+                "nuV": elastic.poissonsratio_voigt(),
+                "nuR": elastic.poissonsratio_reuss(),
+                "nuH": elastic.poissonsratio_hill(),
+                "AVR": elastic.AVR(),
+                "C_eigval": elastic.elastic_matrix_eigval(),
+            }
+        )
 
     @staticmethod
     def subjob_name(i, eps):
