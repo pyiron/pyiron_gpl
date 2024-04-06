@@ -165,7 +165,7 @@ class TestYaff(unittest.TestCase):
 
     def test_set_structure(self):
         self.assertEqual(self.job.structure, None)
-        self.job.load_chk(posixpath.join(self.execution_path, "../static/yaff_test_files/sp/input.chk"))
+        self.job.load_chk(posixpath.join(self.execution_path, "static/yaff_test_files/sp/input.chk"))
         self.assertIsInstance(self.job.structure, Atoms)
 
         ffatypes = self.job.ffatypes
@@ -192,7 +192,7 @@ class TestYaff(unittest.TestCase):
 
     def test_run_sp_complete(self):
         self.job_complete.load_chk(
-            posixpath.join(self.execution_path, "../static/yaff_test_files/sp/system.chk")
+            posixpath.join(self.execution_path, "static/yaff_test_files/sp/system.chk")
         )
 
         ffpars = """
@@ -218,7 +218,7 @@ class TestYaff(unittest.TestCase):
         self.job_complete.input['ffpars'] = ffpars
         self.job_complete.calc_static()
         file_directory = posixpath.join(
-            self.execution_path, '../static/yaff_test_files/sp'
+            self.execution_path, 'static/yaff_test_files/sp'
         )
         self.job_complete.restart_file_list.append(
             posixpath.join(file_directory, "output.h5")
@@ -249,7 +249,7 @@ class TestYaff(unittest.TestCase):
 
     def test_run_minimize_complete(self):
         self.job_complete.load_chk(
-            posixpath.join(self.execution_path, "../static/yaff_test_files/opt/opt.chk")
+            posixpath.join(self.execution_path, "static/yaff_test_files/opt/opt.chk")
         )
 
         ffpars = """
@@ -275,7 +275,7 @@ class TestYaff(unittest.TestCase):
         self.job_complete.input['ffpars'] = ffpars
         self.job_complete.calc_minimize()
         file_directory = posixpath.join(
-            self.execution_path, '../static/yaff_test_files/opt'
+            self.execution_path, 'static/yaff_test_files/opt'
         )
         self.job_complete.restart_file_list.append(
             posixpath.join(file_directory, "output.h5")
@@ -308,7 +308,7 @@ class TestYaff(unittest.TestCase):
 
     def test_run_md_complete(self):
         self.job_complete.load_chk(
-            posixpath.join(self.execution_path, "../static/yaff_test_files/md/system.chk")
+            posixpath.join(self.execution_path, "static/yaff_test_files/md/system.chk")
         )
 
         ffpars = """
@@ -334,7 +334,7 @@ class TestYaff(unittest.TestCase):
         self.job_complete.input['ffpars'] = ffpars
         self.job_complete.calc_md(temperature=300*kelvin, nsteps=1000, time_step=1.0*femtosecond)
         file_directory = posixpath.join(
-            self.execution_path, '../static/yaff_test_files/md'
+            self.execution_path, 'static/yaff_test_files/md'
         )
         self.job_complete.restart_file_list.append(
             posixpath.join(file_directory, "output.h5")
@@ -372,7 +372,7 @@ class TestYaff(unittest.TestCase):
 
     def test_run_metadynamics_complete(self):
         self.job_complete.load_chk(
-            posixpath.join(self.execution_path, "../static/yaff_test_files/metadynamics/system.chk")
+            posixpath.join(self.execution_path, "static/yaff_test_files/metadynamics/system.chk")
         )
 
         ffpars = """
@@ -431,7 +431,7 @@ class TestYaff(unittest.TestCase):
         self.job_complete.calc_md(temperature=300*kelvin, nsteps=1000, time_step=0.5*femtosecond, n_print=1)
         self.job_complete.set_mtd([('torsion', [0, 1, 2, 3])], 1*kjmol, 5.*deg, 40)
         file_directory = posixpath.join(
-            self.execution_path, '../static/yaff_test_files/metadynamics'
+            self.execution_path, 'static/yaff_test_files/metadynamics'
         )
         self.job_complete.restart_file_list.append(
             posixpath.join(file_directory, "output.h5")
