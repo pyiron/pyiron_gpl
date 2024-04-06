@@ -4,6 +4,7 @@ dependencies:
 - coveralls
 - coverage
 - codacy-coverage
+- atomistics =0.1.24
 - molmod =1.4.8
 - numpy =1.26.4
 - pyiron_atomistics =0.4.17
