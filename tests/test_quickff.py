@@ -108,17 +108,17 @@ class TestQuickFF(unittest.TestCase):
             self.assertIsInstance(self.job.input['do_bendclin'], (bool))
             self.assertIsInstance(self.job.input['do_sqoopdist_to_oopdist'], (bool))
 
-            self.job.set_ei(posixpath.join(self.execution_path, "../static/quickff_test_files/pars_mbisgauss.txt"))
+            self.job.set_ei(posixpath.join(self.execution_path, "static/quickff_test_files/pars_mbisgauss.txt"))
             self.assertEqual(self.job.input['ei'], 'pars_mbisgauss.txt')
-            self.assertEqual(self.job.fn_ei, posixpath.join(self.execution_path, "../static/quickff_test_files/pars_mbisgauss.txt"))
-            self.job.set_vdw(posixpath.join(self.execution_path, "../static/quickff_test_files/pars_vdw.txt"))
+            self.assertEqual(self.job.fn_ei, posixpath.join(self.execution_path, "static/quickff_test_files/pars_mbisgauss.txt"))
+            self.job.set_vdw(posixpath.join(self.execution_path, "static/quickff_test_files/pars_vdw.txt"))
             self.assertEqual(self.job.input['vdw'], 'pars_vdw.txt')
-            self.assertEqual(self.job.fn_vdw, posixpath.join(self.execution_path, "../static/quickff_test_files/pars_vdw.txt"))
+            self.assertEqual(self.job.fn_vdw, posixpath.join(self.execution_path, "static/quickff_test_files/pars_vdw.txt"))
 
 
         def test_set_structure(self):
             self.assertEqual(self.job.structure, None)
-            self.job.read_abinitio(posixpath.join(self.execution_path, "../static/quickff_test_files/input.fchk"))
+            self.job.read_abinitio(posixpath.join(self.execution_path, "static/quickff_test_files/input.fchk"))
             self.assertIsInstance(self.job.structure, (Atoms))
 
             self.assertIsInstance(self.job.aiener, (float))
@@ -150,17 +150,17 @@ class TestQuickFF(unittest.TestCase):
 
         def test_run_complete(self):
             self.job_complete.read_abinitio(
-                posixpath.join(self.execution_path, "../static/quickff_test_files/input.fchk")
+                posixpath.join(self.execution_path, "static/quickff_test_files/input.fchk")
             )
 
             self.job_complete.set_ei(
-                posixpath.join(self.execution_path, "../static/quickff_test_files/pars_mbisgauss.txt")
+                posixpath.join(self.execution_path, "static/quickff_test_files/pars_mbisgauss.txt")
             )
 
             self.job_complete.detect_ffatypes(ffatype_level='low')
 
             file_directory = posixpath.join(
-                self.execution_path, '../static/quickff_test_files/'
+                self.execution_path, 'static/quickff_test_files/'
             )
             self.job_complete.restart_file_list.append(
                 posixpath.join(file_directory, "system.chk")
