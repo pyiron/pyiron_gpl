@@ -3,13 +3,9 @@ channels:
 dependencies:
 - codacy-coverage
 - coverage
-- atomistics =0.1.26
 - molmod =1.4.8
 - numpy =1.26.4
 - pyiron_atomistics =0.5.2
-- maggma =0.60.2
-- scipy =1.13.0
-- spglib =2.4.0
 - quickff =2.2.4
 - tamkin =1.2.6
 - yaff =1.6.0
