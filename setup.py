@@ -30,7 +30,7 @@ setup(
     install_requires=[
         'molmod==1.4.8',
         'numpy==1.26.4',
-        'pyiron_atomistics==0.5.3',
+        'pyiron_atomistics==0.5.4',
         'quickff==2.2.4',
         'tamkin==1.2.6',
         'yaff==1.6.0'
