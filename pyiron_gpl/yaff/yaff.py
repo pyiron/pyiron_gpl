@@ -659,6 +659,7 @@ class Yaff(AtomisticGenericJob):
         self.ffatype_ids = system.ffatype_ids.copy()
 
     def write_input(self):
+        super().write_input()
         input_dict = {'jobtype': self.input['jobtype'], 'symbols': self.structure.get_chemical_symbols(),
                       'numbers': np.array([pt[symbol].number for symbol in self.structure.get_chemical_symbols()]),
                       'ffatypes': self.ffatypes, 'ffatype_ids': self.ffatype_ids, 'ffpars': self.input['ffpars'],
