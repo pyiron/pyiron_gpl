@@ -211,6 +211,7 @@ class QuickFF(AtomisticGenericJob):
         self.fn_vdw = fn
 
     def write_input(self):
+        super().write_input()
         # load system related input
         input_dict = {
             'symbols': self.structure.get_chemical_symbols(),
