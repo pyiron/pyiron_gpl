@@ -31,7 +31,7 @@ setup(
         'molmod==1.4.8',
         'numpy==1.26.4',
         'pyiron_atomistics==0.6.1',
-        'pyiron_snippets==0.1.1',
+        'pyiron_snippets==0.1.2',
         'quickff==2.2.4',
         'tamkin==1.2.6',
         'yaff==1.6.0'
